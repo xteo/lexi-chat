@@ -1,10 +1,10 @@
-import { auth } from '@/app/(auth)/auth';
+import { auth } from '@/lib/supabase/auth';
 import type { ArtifactKind } from '@/components/artifact';
 import {
   deleteDocumentsByIdAfterTimestamp,
   getDocumentsById,
   saveDocument,
-} from '@/lib/db/queries';
+} from '@/lib/db/queries-wrapper';
 import { ChatSDKError } from '@/lib/errors';
 
 export async function GET(request: Request) {

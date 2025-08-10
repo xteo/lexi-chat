@@ -1,10 +1,8 @@
 'use server';
 
 import { z } from 'zod';
-
-import { createUser, getUser } from '@/lib/db/queries';
-
-import { signIn } from './auth';
+import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 
 const authFormSchema = z.object({
   email: z.string().email(),
@@ -25,11 +23,16 @@ export const login = async (
       password: formData.get('password'),
     });
 
-    await signIn('credentials', {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.signInWithPassword({
       email: validatedData.email,
       password: validatedData.password,
-      redirect: false,
     });
+
+    if (error) {
+      console.error('Login error:', error);
+      return { status: 'failed' };
+    }
 
     return { status: 'success' };
   } catch (error) {
@@ -61,17 +64,39 @@ export const register = async (
       password: formData.get('password'),
     });
 
-    const [user] = await getUser(validatedData.email);
-
-    if (user) {
-      return { status: 'user_exists' } as RegisterActionState;
-    }
-    await createUser(validatedData.email, validatedData.password);
-    await signIn('credentials', {
+    const supabase = await createClient();
+    
+    // Sign up the user
+    const { error, data } = await supabase.auth.signUp({
       email: validatedData.email,
       password: validatedData.password,
-      redirect: false,
+      options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/callback`,
+      },
     });
+
+    if (error) {
+      console.error('Registration error:', error);
+      if (error.message.includes('already registered')) {
+        return { status: 'user_exists' };
+      }
+      return { status: 'failed' };
+    }
+
+    // Check if user already exists (Supabase returns user with no identities)
+    if (data?.user?.identities?.length === 0) {
+      return { status: 'user_exists' };
+    }
+
+    // Auto sign in after registration
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: validatedData.email,
+      password: validatedData.password,
+    });
+
+    if (signInError) {
+      console.error('Auto sign-in error:', signInError);
+    }
 
     return { status: 'success' };
   } catch (error) {
@@ -82,3 +107,9 @@ export const register = async (
     return { status: 'failed' };
   }
 };
+
+export async function signOut() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect('/login');
+}

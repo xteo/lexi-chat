@@ -6,7 +6,7 @@ import {
   deleteMessagesByChatIdAfterTimestamp,
   getMessageById,
   updateChatVisiblityById,
-} from '@/lib/db/queries';
+} from '@/lib/db/queries-wrapper';
 import type { VisibilityType } from '@/components/visibility-selector';
 import { myProvider } from '@/lib/ai/providers';
 

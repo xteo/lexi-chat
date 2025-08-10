@@ -6,7 +6,7 @@ import {
   stepCountIs,
   streamText,
 } from 'ai';
-import { auth, type UserType } from '@/app/(auth)/auth';
+import { auth, type UserType } from '@/lib/supabase/auth';
 import { type RequestHints, systemPrompt } from '@/lib/ai/prompts';
 import {
   createStreamId,
@@ -16,7 +16,7 @@ import {
   getMessagesByChatId,
   saveChat,
   saveMessages,
-} from '@/lib/db/queries';
+} from '@/lib/db/queries-wrapper';
 import { convertToUIMessages, generateUUID } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
 import { createDocument } from '@/lib/ai/tools/create-document';
@@ -43,6 +43,10 @@ export const maxDuration = 60;
 let globalStreamContext: ResumableStreamContext | null = null;
 
 export function getStreamContext() {
+  // Resumable streams disabled - no Redis configured
+  return null;
+  
+  /* Original code for when Redis is available:
   if (!globalStreamContext) {
     try {
       globalStreamContext = createResumableStreamContext({
@@ -60,6 +64,7 @@ export function getStreamContext() {
   }
 
   return globalStreamContext;
+  */
 }
 
 export async function POST(request: Request) {
@@ -102,14 +107,14 @@ export async function POST(request: Request) {
       return new ChatSDKError('rate_limit:chat').toResponse();
     }
 
-    const chat = await getChatById({ id });
+    let chat = await getChatById({ id });
 
     if (!chat) {
       const title = await generateTitleFromUserMessage({
         message,
       });
 
-      await saveChat({
+      chat = await saveChat({
         id,
         userId: session.user.id,
         title,
@@ -222,6 +227,9 @@ export async function POST(request: Request) {
     if (error instanceof ChatSDKError) {
       return error.toResponse();
     }
+    
+    console.error('Unexpected error in chat route:', error);
+    return new ChatSDKError('internal_server_error', 'An unexpected error occurred').toResponse();
   }
 }
 

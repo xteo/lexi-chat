@@ -1,6 +1,6 @@
-import { auth } from '@/app/(auth)/auth';
+import { auth } from '@/lib/supabase/auth';
 import type { NextRequest } from 'next/server';
-import { getChatsByUserId } from '@/lib/db/queries';
+import { getChatsByUserId } from '@/lib/db/queries-supabase';
 import { ChatSDKError } from '@/lib/errors';
 
 export async function GET(request: NextRequest) {
@@ -23,12 +23,33 @@ export async function GET(request: NextRequest) {
     return new ChatSDKError('unauthorized:chat').toResponse();
   }
 
-  const chats = await getChatsByUserId({
-    id: session.user.id,
-    limit,
-    startingAfter,
-    endingBefore,
-  });
+  try {
+    const chats = await getChatsByUserId(session.user.id);
+    
+    // Apply pagination
+    let filteredChats = chats;
+    
+    if (endingBefore) {
+      const index = chats.findIndex(chat => chat.id === endingBefore);
+      if (index > 0) {
+        filteredChats = chats.slice(0, index);
+      }
+    } else if (startingAfter) {
+      const index = chats.findIndex(chat => chat.id === startingAfter);
+      if (index >= 0) {
+        filteredChats = chats.slice(index + 1);
+      }
+    }
+    
+    // Apply limit
+    const paginatedChats = limit ? filteredChats.slice(0, limit) : filteredChats;
 
-  return Response.json(chats);
+    return Response.json({
+      chats: paginatedChats,
+      hasMore: filteredChats.length > limit,
+    });
+  } catch (error) {
+    console.error('Error fetching chats:', error);
+    return new ChatSDKError('bad_request:database', 'Failed to get chats').toResponse();
+  }
 }

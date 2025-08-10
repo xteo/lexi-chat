@@ -1,5 +1,5 @@
-import { auth } from '@/app/(auth)/auth';
-import { getSuggestionsByDocumentId } from '@/lib/db/queries';
+import { auth } from '@/lib/supabase/auth';
+import { getSuggestionsByDocumentId } from '@/lib/db/queries-wrapper';
 import { ChatSDKError } from '@/lib/errors';
 
 export async function GET(request: Request) {

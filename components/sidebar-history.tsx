@@ -86,7 +86,7 @@ export function getChatHistoryPaginationKey(
 
   if (pageIndex === 0) return `/api/history?limit=${PAGE_SIZE}`;
 
-  const firstChatFromPage = previousPageData.chats.at(-1);
+  const firstChatFromPage = previousPageData?.chats?.at(-1);
 
   if (!firstChatFromPage) return null;
 
@@ -112,11 +112,11 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const hasReachedEnd = paginatedChatHistories
-    ? paginatedChatHistories.some((page) => page.hasMore === false)
+    ? paginatedChatHistories.some((page) => page?.hasMore === false)
     : false;
 
   const hasEmptyChatHistory = paginatedChatHistories
-    ? paginatedChatHistories.every((page) => page.chats.length === 0)
+    ? paginatedChatHistories.every((page) => page?.chats?.length === 0)
     : false;
 
   const handleDelete = async () => {
@@ -131,7 +131,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
           if (chatHistories) {
             return chatHistories.map((chatHistory) => ({
               ...chatHistory,
-              chats: chatHistory.chats.filter((chat) => chat.id !== deleteId),
+              chats: chatHistory?.chats?.filter((chat) => chat.id !== deleteId) || [],
             }));
           }
         });
@@ -209,7 +209,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
             {paginatedChatHistories &&
               (() => {
                 const chatsFromHistory = paginatedChatHistories.flatMap(
-                  (paginatedChatHistory) => paginatedChatHistory.chats,
+                  (paginatedChatHistory) => paginatedChatHistory?.chats || [],
                 );
 
                 const groupedChats = groupChatsByDate(chatsFromHistory);

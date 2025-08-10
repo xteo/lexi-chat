@@ -1,9 +1,9 @@
-import { auth } from '@/app/(auth)/auth';
+import { auth } from '@/lib/supabase/auth';
 import {
   getChatById,
   getMessagesByChatId,
   getStreamIdsByChatId,
-} from '@/lib/db/queries';
+} from '@/lib/db/queries-wrapper';
 import type { Chat } from '@/lib/db/schema';
 import { ChatSDKError } from '@/lib/errors';
 import type { ChatMessage } from '@/lib/types';
