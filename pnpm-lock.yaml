@@ -8,6 +8,12 @@ dependencies:
   '@ai-sdk/groq':
     specifier: ^2.0.4
     version: 2.0.4(zod@3.25.76)
+  '@ai-sdk/openai':
+    specifier: ^2.0.8
+    version: 2.0.8(zod@3.25.76)
+  '@ai-sdk/openai-compatible':
+    specifier: ^1.0.4
+    version: 1.0.4(zod@3.25.76)
   '@ai-sdk/provider':
     specifier: 2.0.0-beta.1
     version: 2.0.0-beta.1
@@ -316,6 +322,28 @@ packages:
     dependencies:
       '@ai-sdk/provider': 2.0.0-beta.1
       '@ai-sdk/provider-utils': 3.0.0-beta.2(zod@3.25.76)
+      zod: 3.25.76
+    dev: false
+
+  /@ai-sdk/openai-compatible@1.0.4(zod@3.25.76):
+    resolution: {integrity: sha512-XQeSVO6jI/K5NW7Tx1QlOIjuE7iWMi6BN/tuuIvEzw1ptFbF25cx7+szzw8VcnrREd9pnWaYTQfc/OwaCn6l0A==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4
+    dependencies:
+      '@ai-sdk/provider': 2.0.0
+      '@ai-sdk/provider-utils': 3.0.1(zod@3.25.76)
+      zod: 3.25.76
+    dev: false
+
+  /@ai-sdk/openai@2.0.8(zod@3.25.76):
+    resolution: {integrity: sha512-D5AP65yCXL4GtTrWGhu3hTHhlKyYu8NBRtRZ1h5F8PYXFVLtuiQ0AypbDreXLphONehLf0zGN3Cm3Fob/DDMRw==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4
+    dependencies:
+      '@ai-sdk/provider': 2.0.0
+      '@ai-sdk/provider-utils': 3.0.1(zod@3.25.76)
       zod: 3.25.76
     dev: false
 
