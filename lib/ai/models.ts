@@ -8,21 +8,6 @@ export interface ChatModel {
 
 export const chatModels: Array<ChatModel> = [
   {
-    id: 'chat-model',
-    label: 'Grok 4',
-    description: 'Latest Grok model with enhanced capabilities',
-  },
-  {
-    id: 'chat-model-reasoning',
-    label: 'Grok 4 Reasoning',
-    description: 'Advanced reasoning mode',
-  },
-  {
-    id: 'openai-model',
-    label: 'OpenAI GPT-5',
-    description: 'Powered by OpenAI',
-  },
-  {
     id: 'lexi',
     label: 'Lexi',
     description: 'Lexi General Agent',

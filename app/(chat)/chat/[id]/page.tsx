@@ -6,6 +6,7 @@ import { Chat } from '@/components/chat';
 import { getChatById, getMessagesByChatId } from '@/lib/db/queries-wrapper';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
+import { DEFAULT_LLM_CONFIG } from '@/lib/ai/llm-configs';
 import { convertToUIMessages } from '@/lib/utils';
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
@@ -41,6 +42,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
 
   const cookieStore = await cookies();
   const chatModelFromCookie = cookieStore.get('chat-model');
+  const llmConfigFromCookie = cookieStore.get('llm-config');
 
   if (!chatModelFromCookie) {
     return (
@@ -49,7 +51,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
           id={chat.id}
           initialMessages={uiMessages}
           initialChatModel={DEFAULT_CHAT_MODEL}
-          initialVisibilityType={chat.visibility}
+          initialLLMConfig={llmConfigFromCookie?.value || DEFAULT_LLM_CONFIG}
           isReadonly={session?.user?.id !== chat.userId}
           session={session}
           autoResume={true}
@@ -65,7 +67,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
         id={chat.id}
         initialMessages={uiMessages}
         initialChatModel={chatModelFromCookie.value}
-        initialVisibilityType={chat.visibility}
+        initialLLMConfig={llmConfigFromCookie?.value || DEFAULT_LLM_CONFIG}
         isReadonly={session?.user?.id !== chat.userId}
         session={session}
         autoResume={true}

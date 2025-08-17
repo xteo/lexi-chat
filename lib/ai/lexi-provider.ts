@@ -2,10 +2,10 @@ import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { getEnvironmentConfig } from '@/lib/config/endpoints';
 
 /**
- * Create a Lexi provider with dynamic JWT authentication
+ * Create a Lexi provider with dynamic JWT authentication and LLM config
  * The JWT token is passed via headers at the API route level
  */
-export function createLexiProvider(jwtToken?: string) {
+export function createLexiProvider(jwtToken?: string, llmConfig?: string) {
   const config = getEnvironmentConfig();
   const baseURL = config.openbrain;
   
@@ -20,14 +20,23 @@ export function createLexiProvider(jwtToken?: string) {
     headers: jwtToken ? {
       'Authorization': `Bearer ${jwtToken}`,
     } : undefined,
+    fetch: async (url, init) => {
+      // Modify the request body to include llm_config if provided
+      if (llmConfig && init?.body) {
+        const body = JSON.parse(init.body as string);
+        body.llm_config = llmConfig;
+        init.body = JSON.stringify(body);
+      }
+      return fetch(url, init);
+    },
   });
 }
 
 /**
  * Get the Lexi provider configuration for different models
  */
-export function getLexiModels(jwtToken?: string) {
-  const provider = createLexiProvider(jwtToken);
+export function getLexiModels(jwtToken?: string, llmConfig?: string) {
+  const provider = createLexiProvider(jwtToken, llmConfig);
   
   return {
     'lexi': provider('lexi'),

@@ -48,10 +48,10 @@ export const myProvider = isTestEnvironment
         }),
         
         // Grok 4 - most advanced model (when available)
-        'grok-4': xai('grok-4-0709'),
+        // 'grok-4': xai('grok-4-0709'),
         
         // OpenAI model
-        'openai-model': openai('gpt-5'),
+        // 'openai-model': openai('gpt-5'),
         
         // Lexi specialized models
         'lexi': customCompatibleProvider('lexi'),

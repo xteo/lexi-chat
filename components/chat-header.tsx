@@ -11,19 +11,20 @@ import { PlusIcon, VercelIcon } from './icons';
 import { useSidebar } from './ui/sidebar';
 import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import { type VisibilityType, VisibilitySelector } from './visibility-selector';
+import { LLMConfigSelector } from './llm-config-selector';
+import { type LLMConfigType } from '@/lib/ai/llm-configs';
 import type { Session } from '@/lib/supabase/auth';
 
 function PureChatHeader({
   chatId,
   selectedModelId,
-  selectedVisibilityType,
+  selectedLLMConfig,
   isReadonly,
   session,
 }: {
   chatId: string;
   selectedModelId: string;
-  selectedVisibilityType: VisibilityType;
+  selectedLLMConfig: LLMConfigType;
   isReadonly: boolean;
   session: Session;
 }) {
@@ -64,9 +65,9 @@ function PureChatHeader({
       )}
 
       {!isReadonly && (
-        <VisibilitySelector
+        <LLMConfigSelector
           chatId={chatId}
-          selectedVisibilityType={selectedVisibilityType}
+          selectedLLMConfig={selectedLLMConfig}
           className="order-1 md:order-3"
         />
       )}

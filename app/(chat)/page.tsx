@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 
 import { Chat } from '@/components/chat';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
+import { DEFAULT_LLM_CONFIG } from '@/lib/ai/llm-configs';
 import { generateUUID } from '@/lib/utils';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { auth } from '@/lib/supabase/auth';
@@ -18,6 +19,7 @@ export default async function Page() {
 
   const cookieStore = await cookies();
   const modelIdFromCookie = cookieStore.get('chat-model');
+  const llmConfigFromCookie = cookieStore.get('llm-config');
 
   if (!modelIdFromCookie) {
     return (
@@ -27,7 +29,7 @@ export default async function Page() {
           id={id}
           initialMessages={[]}
           initialChatModel={DEFAULT_CHAT_MODEL}
-          initialVisibilityType="private"
+          initialLLMConfig={llmConfigFromCookie?.value || DEFAULT_LLM_CONFIG}
           isReadonly={false}
           session={session}
           autoResume={false}
@@ -44,7 +46,7 @@ export default async function Page() {
         id={id}
         initialMessages={[]}
         initialChatModel={modelIdFromCookie.value}
-        initialVisibilityType="private"
+        initialLLMConfig={llmConfigFromCookie?.value || DEFAULT_LLM_CONFIG}
         isReadonly={false}
         session={session}
         autoResume={false}

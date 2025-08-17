@@ -10,14 +10,14 @@ import { fetcher, fetchWithErrorHandlers, generateUUID } from '@/lib/utils';
 import { Artifact } from './artifact';
 import { MultimodalInput } from './multimodal-input';
 import { Messages } from './messages';
-import type { VisibilityType } from './visibility-selector';
+import { type LLMConfigType } from '@/lib/ai/llm-configs';
 import { useArtifactSelector } from '@/hooks/use-artifact';
 import { unstable_serialize } from 'swr/infinite';
 import { getChatHistoryPaginationKey } from './sidebar-history';
 import { toast } from './toast';
 import type { Session } from '@/lib/supabase/auth';
 import { useSearchParams } from 'next/navigation';
-import { useChatVisibility } from '@/hooks/use-chat-visibility';
+import { useLLMConfig } from '@/hooks/use-llm-config';
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { ChatSDKError } from '@/lib/errors';
 import type { Attachment, ChatMessage } from '@/lib/types';
@@ -27,7 +27,7 @@ export function Chat({
   id,
   initialMessages,
   initialChatModel,
-  initialVisibilityType,
+  initialLLMConfig,
   isReadonly,
   session,
   autoResume,
@@ -35,14 +35,14 @@ export function Chat({
   id: string;
   initialMessages: ChatMessage[];
   initialChatModel: string;
-  initialVisibilityType: VisibilityType;
+  initialLLMConfig: LLMConfigType;
   isReadonly: boolean;
   session: Session;
   autoResume: boolean;
 }) {
-  const { visibilityType } = useChatVisibility({
+  const { llmConfig } = useLLMConfig({
     chatId: id,
-    initialVisibilityType,
+    initialLLMConfig,
   });
 
   const { mutate } = useSWRConfig();
@@ -72,7 +72,7 @@ export function Chat({
             id,
             message: messages.at(-1),
             selectedChatModel: initialChatModel,
-            selectedVisibilityType: visibilityType,
+            llmConfig: llmConfig,
             ...body,
           },
         };
@@ -132,7 +132,7 @@ export function Chat({
         <ChatHeader
           chatId={id}
           selectedModelId={initialChatModel}
-          selectedVisibilityType={initialVisibilityType}
+          selectedLLMConfig={llmConfig}
           isReadonly={isReadonly}
           session={session}
         />
@@ -161,7 +161,6 @@ export function Chat({
               messages={messages}
               setMessages={setMessages}
               sendMessage={sendMessage}
-              selectedVisibilityType={visibilityType}
             />
           )}
         </form>
@@ -181,7 +180,6 @@ export function Chat({
         regenerate={regenerate}
         votes={votes}
         isReadonly={isReadonly}
-        selectedVisibilityType={visibilityType}
       />
     </>
   );

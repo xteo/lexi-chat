@@ -15,6 +15,11 @@ export async function saveChatModelAsCookie(model: string) {
   cookieStore.set('chat-model', model);
 }
 
+export async function saveLLMConfigAsCookie(llmConfig: string) {
+  const cookieStore = await cookies();
+  cookieStore.set('llm-config', llmConfig);
+}
+
 export async function generateTitleFromUserMessage({
   message,
 }: {
