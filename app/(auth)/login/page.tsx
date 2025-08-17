@@ -24,6 +24,8 @@ export default function Page() {
   );
 
   useEffect(() => {
+    if (!state) return;
+    
     if (state.status === 'failed') {
       toast({
         type: 'error',
@@ -39,7 +41,7 @@ export default function Page() {
       router.refresh();
       router.push('/');
     }
-  }, [state.status, router]);
+  }, [state, router]);
 
   const handleSubmit = (formData: FormData) => {
     setEmail(formData.get('email') as string);

@@ -8,6 +8,20 @@ const components: Partial<Components> = {
   // @ts-expect-error
   code: CodeBlock,
   pre: ({ children }) => <>{children}</>,
+  img: ({ node, ...props }) => {
+    return (
+      <img
+        {...props}
+        className="max-w-full h-auto rounded-lg my-4"
+        loading="lazy"
+        alt={props.alt || 'Image'}
+        onError={(e) => {
+          // Handle image loading errors gracefully
+          e.currentTarget.style.display = 'none';
+        }}
+      />
+    );
+  },
   ol: ({ node, children, ...props }) => {
     return (
       <ol className="list-decimal list-outside ml-4" {...props}>

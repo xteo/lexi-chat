@@ -2,8 +2,9 @@
 
 import { ChevronUp } from 'lucide-react';
 import Image from 'next/image';
-import type { User } from 'next-auth';
-import { signOut, useSession } from 'next-auth/react';
+import type { Session } from '@/lib/supabase/auth';
+// TODO: Replace with Supabase client-side auth hooks
+// import { signOut, useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 
 import {
@@ -23,12 +24,14 @@ import { toast } from './toast';
 import { LoaderIcon } from './icons';
 import { guestRegex } from '@/lib/constants';
 
-export function SidebarUserNav({ user }: { user: User }) {
+export function SidebarUserNav({ user }: { user: Session['user'] }) {
   const router = useRouter();
-  const { data, status } = useSession();
+  // Temporarily disabled next-auth hooks - using passed user prop instead
+  // const { data, status } = useSession();
+  const status = user ? 'authenticated' : 'loading';
   const { setTheme, resolvedTheme } = useTheme();
 
-  const isGuest = guestRegex.test(data?.user?.email ?? '');
+  const isGuest = guestRegex.test(user?.email ?? '');
 
   return (
     <SidebarMenu>
@@ -97,9 +100,12 @@ export function SidebarUserNav({ user }: { user: User }) {
                   if (isGuest) {
                     router.push('/login');
                   } else {
-                    signOut({
-                      redirectTo: '/',
-                    });
+                    // Use form action for Supabase sign out
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/api/auth/signout';
+                    document.body.appendChild(form);
+                    form.submit();
                   }
                 }}
               >

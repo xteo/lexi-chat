@@ -19,6 +19,8 @@ import { MessageReasoning } from './message-reasoning';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ChatMessage } from '@/lib/types';
 import { useDataStream } from './data-stream-provider';
+import { processTextForImages } from '@/lib/utils/image-detection';
+import { ImageModal } from './image-modal';
 
 // Type narrowing is handled by TypeScript's control flow analysis
 // The AI SDK provides proper discriminated unions for tool calls
@@ -43,10 +45,14 @@ const PurePreviewMessage = ({
   requiresScrollPadding: boolean;
 }) => {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
+  const [modalImage, setModalImage] = useState<{ url: string; alt: string } | null>(null);
 
-  const attachmentsFromMessage = message.parts.filter(
-    (part) => part.type === 'file',
-  );
+  const attachmentsFromMessage = message.attachments?.map(attachment => ({
+    filename: `image.${attachment.mimeType?.split('/')[1] || 'jpg'}`,
+    mediaType: attachment.mimeType || 'image/jpeg',
+    url: attachment.base64Data,
+  })) || [];
+
 
   useDataStream();
 
@@ -81,23 +87,6 @@ const PurePreviewMessage = ({
               'min-h-96': message.role === 'assistant' && requiresScrollPadding,
             })}
           >
-            {attachmentsFromMessage.length > 0 && (
-              <div
-                data-testid={`message-attachments`}
-                className="flex flex-row justify-end gap-2"
-              >
-                {attachmentsFromMessage.map((attachment) => (
-                  <PreviewAttachment
-                    key={attachment.url}
-                    attachment={{
-                      name: attachment.filename ?? 'file',
-                      contentType: attachment.mediaType,
-                      url: attachment.url,
-                    }}
-                  />
-                ))}
-              </div>
-            )}
 
             {message.parts?.map((part, index) => {
               const { type } = part;
@@ -115,34 +104,84 @@ const PurePreviewMessage = ({
 
               if (type === 'text') {
                 if (mode === 'view') {
+                  // Process text for embedded images
+                  const { cleanedText, images } = processTextForImages(part.text);
+                  
+                  
                   return (
-                    <div key={key} className="flex flex-row gap-2 items-start">
-                      {message.role === 'user' && !isReadonly && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              data-testid="message-edit-button"
-                              variant="ghost"
-                              className="px-2 h-fit rounded-full text-muted-foreground opacity-0 group-hover/message:opacity-100"
-                              onClick={() => {
-                                setMode('edit');
-                              }}
-                            >
-                              <PencilEditIcon />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Edit message</TooltipContent>
-                        </Tooltip>
+                    <div key={key} className="flex flex-col gap-4">
+                      {/* Display extracted images first */}
+                      {images.length > 0 && (
+                        <div className="flex flex-col gap-2">
+                          {images.map((img, imgIndex) => (
+                            <div key={`${key}-img-${imgIndex}`} className="max-w-md">
+                              <img
+                                src={img.url}
+                                alt={`Embedded image ${imgIndex + 1}`}
+                                className="rounded-lg w-full h-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                                loading="lazy"
+                                onClick={() => window.open(img.url, '_blank')}
+                                onError={(e) => {
+                                  // Hide broken images
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                            </div>
+                          ))}
+                        </div>
                       )}
+                      
+                      {/* Display text content */}
+                      <div className="flex flex-row gap-2 items-start">
+                        {message.role === 'user' && !isReadonly && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                data-testid="message-edit-button"
+                                variant="ghost"
+                                className="px-2 h-fit rounded-full text-muted-foreground opacity-0 group-hover/message:opacity-100"
+                                onClick={() => {
+                                  setMode('edit');
+                                }}
+                              >
+                                <PencilEditIcon />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Edit message</TooltipContent>
+                          </Tooltip>
+                        )}
 
-                      <div
-                        data-testid="message-content"
-                        className={cn('flex flex-col gap-4', {
-                          'bg-primary text-primary-foreground px-3 py-2 rounded-xl':
-                            message.role === 'user',
-                        })}
-                      >
-                        <Markdown>{sanitizeText(part.text)}</Markdown>
+                        <div
+                          data-testid="message-content"
+                          className={cn('flex flex-col gap-4', {
+                            'bg-primary text-primary-foreground px-3 py-2 rounded-xl':
+                              message.role === 'user',
+                          })}
+                        >
+                          {/* Show attachments first, but only for the first text part */}
+                          {index === 0 && attachmentsFromMessage.length > 0 && (
+                            <div
+                              data-testid={`message-attachments`}
+                              className="flex flex-col gap-2"
+                            >
+                              {attachmentsFromMessage.map((attachment) => (
+                                <PreviewAttachment
+                                  key={attachment.url}
+                                  attachment={{
+                                    name: attachment.filename ?? 'file',
+                                    contentType: attachment.mediaType,
+                                    url: attachment.url,
+                                  }}
+                                  size="large"
+                                  onImageClick={(url: string, alt: string) => 
+                                    setModalImage({ url, alt })
+                                  }
+                                />
+                              ))}
+                            </div>
+                          )}
+                          <Markdown>{sanitizeText(cleanedText)}</Markdown>
+                        </div>
                       </div>
                     </div>
                   );
@@ -321,6 +360,14 @@ const PurePreviewMessage = ({
           </div>
         </div>
       </motion.div>
+      
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={!!modalImage}
+        imageUrl={modalImage?.url || ''}
+        altText={modalImage?.alt}
+        onClose={() => setModalImage(null)}
+      />
     </AnimatePresence>
   );
 };

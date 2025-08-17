@@ -26,6 +26,8 @@ import { getWeather } from '@/lib/ai/tools/get-weather';
 import { isProductionEnvironment } from '@/lib/constants';
 import { myProvider } from '@/lib/ai/providers';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
+import { getJWTToken } from '@/lib/auth/jwt-helper';
+import { createLexiProvider } from '@/lib/ai/lexi-provider';
 import { postRequestBodySchema, type PostRequestBody } from './schema';
 import { geolocation } from '@vercel/functions';
 import {
@@ -154,10 +156,28 @@ export async function POST(request: Request) {
     const streamId = generateUUID();
     await createStreamId({ streamId, chatId: id });
 
+    // Get JWT token for Lexi models
+    let modelToUse;
+    if (selectedChatModel.startsWith('lexi')) {
+      const jwtToken = await getJWTToken();
+      if (jwtToken) {
+        const lexiProvider = createLexiProvider(jwtToken);
+        // Extract the model variant (e.g., 'lexi-todo' -> 'todo')
+        const modelVariant = selectedChatModel === 'lexi' ? 'lexi' : selectedChatModel.replace('lexi-', '');
+        modelToUse = lexiProvider(modelVariant);
+      } else {
+        // Fallback to regular provider if no JWT token
+        console.warn('No JWT token available for Lexi model, falling back to default');
+        modelToUse = myProvider.languageModel(selectedChatModel);
+      }
+    } else {
+      modelToUse = myProvider.languageModel(selectedChatModel);
+    }
+
     const stream = createUIMessageStream({
       execute: ({ writer: dataStream }) => {
         const result = streamText({
-          model: myProvider.languageModel(selectedChatModel),
+          model: modelToUse,
           system: systemPrompt({ selectedChatModel, requestHints }),
           messages: convertToModelMessages(uiMessages),
           stopWhen: stepCountIs(5),

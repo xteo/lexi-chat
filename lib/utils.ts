@@ -102,6 +102,7 @@ export function convertToUIMessages(messages: DBMessage[]): ChatMessage[] {
     id: message.id,
     role: message.role as 'user' | 'assistant' | 'system',
     parts: message.parts as UIMessagePart<CustomUIDataTypes, ChatTools>[],
+    attachments: message.attachments || [],
     metadata: {
       createdAt: formatISO(message.createdAt),
     },
