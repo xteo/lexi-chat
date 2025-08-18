@@ -53,12 +53,27 @@ const PurePreviewMessage = ({
     url: attachment.base64Data,
   })) || [];
 
+  // DEBUG: Log image attachment data (set DEBUG_IMAGES=true to enable)
+  const DEBUG_IMAGES = false;
+  if (DEBUG_IMAGES && attachmentsFromMessage.length > 0) {
+    console.log(`🖼️ Message ${message.id} - Image Debug:`, {
+      originalAttachments: message.attachments,
+      processedAttachments: attachmentsFromMessage,
+      attachmentCount: attachmentsFromMessage.length,
+      firstAttachmentUrl: attachmentsFromMessage[0]?.url?.substring(0, 50) + '...',
+      firstAttachmentType: attachmentsFromMessage[0]?.mediaType,
+      messageParts: message.parts,
+      partsCount: message.parts?.length || 0
+    });
+  }
+
 
   useDataStream();
 
   return (
     <AnimatePresence>
       <motion.div
+        key={`message-${message.id}`}
         data-testid={`message-${message.role}`}
         className="w-full mx-auto max-w-3xl px-4 group/message"
         initial={{ y: 5, opacity: 0 }}
@@ -158,15 +173,15 @@ const PurePreviewMessage = ({
                               message.role === 'user',
                           })}
                         >
-                          {/* Show attachments first, but only for the first text part */}
-                          {index === 0 && attachmentsFromMessage.length > 0 && (
+                          {/* Show attachments inside the bubble for user messages - only on first text part */}
+                          {message.parts?.findIndex(p => p.type === 'text') === index && attachmentsFromMessage.length > 0 && (
                             <div
                               data-testid={`message-attachments`}
                               className="flex flex-col gap-2"
                             >
-                              {attachmentsFromMessage.map((attachment) => (
+                              {attachmentsFromMessage.map((attachment, attachmentIndex) => (
                                 <PreviewAttachment
-                                  key={attachment.url}
+                                  key={`message-${message.id}-attachment-${attachmentIndex}-${attachment.url || 'empty'}`}
                                   attachment={{
                                     name: attachment.filename ?? 'file',
                                     contentType: attachment.mediaType,

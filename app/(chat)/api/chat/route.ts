@@ -139,14 +139,26 @@ export async function POST(request: Request) {
       country,
     };
 
+    // Extract file parts as attachments and remove them from parts
+    const attachments = message.parts
+      .filter((part) => part.type === 'file')
+      .map((part) => ({
+        type: 'image',
+        mimeType: part.mediaType,
+        base64Data: part.url,
+      }));
+
+    // Remove file parts from the parts array, keep only text parts
+    const partsWithoutFiles = message.parts.filter((part) => part.type !== 'file');
+
     await saveMessages({
       messages: [
         {
           chatId: id,
           id: message.id,
           role: 'user',
-          parts: message.parts,
-          attachments: [],
+          parts: partsWithoutFiles,
+          attachments,
           createdAt: new Date(),
         },
       ],

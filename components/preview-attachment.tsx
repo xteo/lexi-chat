@@ -16,6 +16,18 @@ export const PreviewAttachment = ({
 
   const isImage = contentType && contentType.startsWith('image');
   
+  // DEBUG: Log when rendering images (set DEBUG_IMAGES=true to enable)
+  const DEBUG_IMAGES = false;
+  if (DEBUG_IMAGES && isImage && size === 'large') {
+    console.log(`🖼️ PreviewAttachment Debug:`, {
+      name,
+      contentType,
+      urlStart: url?.substring(0, 50) + '...',
+      urlLength: url?.length,
+      isValidDataUrl: url?.startsWith('data:image/'),
+    });
+  }
+  
   // Chat app style: square thumbnails for consistency
   const containerClasses = size === 'large' && isImage
     ? "w-36 h-36" // Fixed 144px square
